@@ -1,16 +1,18 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id       Int       @id @default(autoincrement())
   email    String    @unique
   name     String?
-  password String?   // Adicionado para autenticação
+  password String?
   posts    Post[]
   comments Comment[]
 }
@@ -34,9 +36,4 @@ model Comment {
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId  Int
   createdAt DateTime @default(now())
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
