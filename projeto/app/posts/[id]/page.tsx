@@ -115,15 +115,9 @@ export default function PostPage({ params }: PageProps) {
       {/* Header */}
       <header className="header">
         <div className="container header-content">
-          <Link href="/" className="logo">
-            Blog App
-          </Link>
-          <nav style={{ display: "flex", gap: "1rem" }}>
+          <nav style={{ display: "flex", gap: "1rem", width: "100%", justifyContent: "flex-end" }}>
             <Link href="/posts" className="button button-outline">
               ← Voltar aos posts
-            </Link>
-            <Link href="/login" className="button button-outline">
-              Login
             </Link>
           </nav>
         </div>
