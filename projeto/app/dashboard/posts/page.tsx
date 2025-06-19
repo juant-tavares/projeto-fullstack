@@ -1,116 +1,113 @@
-'use client';
+"use client"
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useAuth } from '@/components/auth-guard';
-
-interface Post {
-  id: number;
-  title: string;
-  content?: string;
-  published: boolean;
-  authorId: number;
-  author?: { name: string };
-  createdAt?: string;
-}
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
+import type { Post } from "@/types"
 
 export default function PostsPage() {
-  const { user } = useAuth();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth()
+  const [posts, setPosts] = useState<Post[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const fetchPosts = async () => {
+    try {
+      console.log("🔄 Buscando posts...")
+      // Usar rota relativa
+      const response = await fetch("/api/posts")
+
+      console.log("📡 Resposta da API:", response.status)
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log("✅ Posts carregados:", data.length)
+        setPosts(data)
+      } else {
+        console.error("❌ Erro ao buscar posts:", response.status)
+      }
+    } catch (error) {
+      console.error("❌ Erro ao buscar posts:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/api/posts');
-        if (response.ok) {
-          const data = await response.json();
-          setPosts(data);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar posts:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []);
+    fetchPosts()
+  }, [])
 
   // Filtrar posts do usuário atual
-  const userPosts = posts.filter(post => post.authorId === user?.id);
+  const userPosts = posts.filter((post) => post.authorId === user?.id)
 
   const handleDeletePost = async (id: number) => {
-    if (confirm('Tem certeza que deseja excluir este post?')) {
-      try {
-        const response = await fetch(`http://localhost:3000/api/posts/${id}`, {
-          method: 'DELETE',
-        });
+    try {
+      console.log("🗑️ Deletando post:", id)
 
-        if (response.ok) {
-          setPosts(posts.filter(post => post.id !== id));
-        }
-      } catch (error) {
-        console.error('Erro ao excluir post:', error);
+      // Usar rota relativa
+      const response = await fetch(`/api/posts/${id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        console.log("✅ Post deletado com sucesso")
+        // Atualizar a lista de posts após a exclusão
+        setPosts(posts.filter((post) => post.id !== id))
+      } else {
+        console.error("❌ Erro ao deletar post:", response.status)
       }
+    } catch (error) {
+      console.error("❌ Erro ao excluir post:", error)
     }
-  };
+  }
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Meus Posts</h1>
-          <p style={{ color: '#666' }}>Gerencie suas publicações</p>
+          <h2 className="text-3xl font-bold tracking-tight">Seus Posts</h2>
+          <p className="text-muted-foreground">Gerencie suas publicações</p>
         </div>
-        <Link href="/dashboard/posts/new" className="button button-primary">
-          ➕ Novo Post
+        <Link href="/dashboard/posts/new">
+          <button className="button button-primary">➕ Novo Post</button>
         </Link>
       </div>
 
       <div className="card">
         <div className="card-header">
-          <h2 className="card-title">Todos os Posts ({userPosts.length})</h2>
+          <h3 className="card-title">Todos os Posts</h3>
+          <p className="card-description">Lista de todos os seus posts</p>
         </div>
         <div className="card-content">
           {isLoading ? (
-            <p>Carregando posts...</p>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton" style={{ height: "5rem", width: "100%" }}></div>
+              ))}
+            </div>
           ) : userPosts.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="space-y-4">
               {userPosts.map((post) => (
-                <div key={post.id} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  padding: '1rem',
-                  border: '1px solid #eee',
-                  borderRadius: '8px',
-                  backgroundColor: '#fff'
-                }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                      <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{post.title}</h3>
-                      <span style={{ 
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px',
-                        fontSize: '0.75rem',
-                        backgroundColor: post.published ? '#dcfce7' : '#fef3c7',
-                        color: post.published ? '#166534' : '#92400e'
-                      }}>
-                        {post.published ? 'Publicado' : 'Rascunho'}
+                <div key={post.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{post.title}</h3>
+                      <span className={`badge ${post.published ? "badge-success" : "badge-warning"}`}>
+                        {post.published ? "Publicado" : "Rascunho"}
                       </span>
                     </div>
-                    <p style={{ margin: 0, color: '#666', fontSize: '0.875rem' }}>
-                      {post.content ? post.content.substring(0, 100) + '...' : 'Sem conteúdo'}
-                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-1">{post.content || "Sem conteúdo"}</p>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Link href={`/dashboard/posts/edit/${post.id}`} className="button button-outline">
-                      ✏️ Editar
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/posts/edit/${post.id}`}>
+                      <button className="button button-outline button-sm">✏️ Editar</button>
                     </Link>
-                    <button 
-                      onClick={() => handleDeletePost(post.id)}
-                      className="button button-danger"
+                    <button
+                      onClick={() => {
+                        if (confirm("Tem certeza que deseja excluir este post?")) {
+                          handleDeletePost(post.id)
+                        }
+                      }}
+                      className="button button-danger button-sm"
                     >
                       🗑️ Excluir
                     </button>
@@ -119,15 +116,15 @@ export default function PostsPage() {
               ))}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>
-              <p style={{ marginBottom: '1rem', color: '#666' }}>Você ainda não criou nenhum post.</p>
-              <Link href="/dashboard/posts/new" className="button button-primary">
-                ➕ Criar seu primeiro post
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-muted-foreground mb-4">Você ainda não criou nenhum post.</p>
+              <Link href="/dashboard/posts/new">
+                <button className="button button-primary">➕ Criar seu primeiro post</button>
               </Link>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,9 +1,13 @@
-// CORRIGIDO: Configuração da API
+// Configuração corrigida para funcionar em build e runtime
 export const API_URL =
-  process.env.NODE_ENV === "production"
-    ? "" // Usar rotas relativas em produção
-    : "http://localhost:3000"
+  typeof window !== "undefined"
+    ? "" // No cliente, usar rotas relativas
+    : process.env.NODE_ENV === "production"
+      ? process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "https://your-app.vercel.app" // Substitua pelo seu domínio
+      : "http://localhost:3000" // Desenvolvimento
 
 // Para debug
 export const IS_PRODUCTION = process.env.NODE_ENV === "production"
-export const DATABASE_URL = process.env.DATABASE_URL
+export const IS_CLIENT = typeof window !== "undefined"

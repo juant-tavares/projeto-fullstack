@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useAuth } from "@/components/auth-guard"
+import { useAuth } from "@/contexts/auth-context"
 
 interface Post {
   id: number
@@ -33,19 +33,27 @@ export default function DashboardPage() {
         try {
           console.log("🔄 Buscando dados do dashboard...")
 
-          const [postsRes, usersRes] = await Promise.all([
-            fetch(`http://localhost:3000/api/posts`),
-            fetch(`http://localhost:3000/api/users`),
-          ])
+          // Usar rotas relativas
+          const [postsRes, usersRes] = await Promise.all([fetch("/api/posts"), fetch("/api/users")])
+
+          console.log("📡 Respostas da API:", {
+            posts: postsRes.status,
+            users: usersRes.status,
+          })
 
           if (postsRes.ok && usersRes.ok) {
             const postsData = await postsRes.json()
             const usersData = await usersRes.json()
 
-            console.log("✅ Dados carregados:", { posts: postsData.length, users: usersData.length })
+            console.log("✅ Dados carregados:", {
+              posts: postsData.length,
+              users: usersData.length,
+            })
 
             setPosts(postsData)
             setUsers(usersData)
+          } else {
+            console.error("❌ Erro nas respostas da API")
           }
         } catch (error) {
           console.error("❌ Erro ao buscar dados:", error)
@@ -126,7 +134,7 @@ export default function DashboardPage() {
                 <p style={{ fontSize: "2.5rem", fontWeight: "bold", margin: "0.5rem 0", color: "#1f2937" }}>
                   {isLoading ? "..." : userPosts.length}
                 </p>
-                <p style={{ fontSize: "0.75rem", color: "#6b7280", margin: 0 }}>Publicados e em rascunho</p>
+                <p style={{ fontSize: "0.75rem", color: "#6b7280", margin: 0 }}>Suas publicações</p>
               </div>
               <div style={{ fontSize: "3rem", opacity: 0.6 }}>✍️</div>
             </div>
