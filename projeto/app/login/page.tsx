@@ -1,10 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { API_URL } from "@/lib/config" // IMPORTANTE: Importar a config
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,8 +20,8 @@ export default function LoginPage() {
     try {
       console.log("🔐 Tentando fazer login para:", email)
 
-      // Versão simplificada: buscar usuário pelo email
-      const response = await fetch(`http://localhost:3000/api/users`)
+      // CORRIGIDO: Usar API_URL em vez de localhost hardcoded
+      const response = await fetch(`${API_URL}/api/users`)
 
       if (!response.ok) {
         setError("Falha ao buscar usuários")

@@ -1,9 +1,7 @@
-// Configuração para produção na Vercel
+// CORRIGIDO: Configuração da API
 export const API_URL =
   process.env.NODE_ENV === "production"
-    ? process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : ""
+    ? "" // Usar rotas relativas em produção
     : "http://localhost:3000"
 
 // Para debug
