@@ -4,7 +4,6 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
-import { API_URL } from "@/lib/config"
 
 export default function NewPostPage() {
   const [title, setTitle] = useState("")
@@ -32,7 +31,8 @@ export default function NewPostPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/api/posts`, {
+      // Usar rota relativa
+      const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
