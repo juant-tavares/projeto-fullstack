@@ -1,1 +1,1 @@
-Só pra forçar o deploy :>
+Resolução do Failed to fetch
