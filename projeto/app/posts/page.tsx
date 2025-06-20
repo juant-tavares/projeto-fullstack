@@ -68,9 +68,6 @@ export default function PostsPage() {
             <UserNav />
           ) : (
             <nav style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-              <Link href="/posts" className="button button-outline">
-                📖 Posts
-              </Link>
               <Link href="/login" className="button button-outline">
                 Login
               </Link>
