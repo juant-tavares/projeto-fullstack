@@ -57,11 +57,11 @@ export default function PostsPage() {
   }, [])
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "#f8fafc", }}>
       {/* Header da página */}
       <header className="header">
         <div className="container header-content">
-          <Link href={user ? "/dashboard" : "/"} className="logo">
+          <Link href={user ? "/" : "/"} className="logo">
             Blog App
           </Link>
           {user ? (
