@@ -5,12 +5,37 @@ import Link from "next/link"
 import { API_URL } from "@/lib/config"
 import type { Post } from "@/types"
 import { formatDate } from "@/lib/utils"
+import { UserNav } from "@/components/user-nav"
+
+interface User {
+  id: number
+  email: string
+  name: string
+}
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
+    // Verificar se o usuário está logado
+    const checkUser = () => {
+      if (typeof window !== "undefined") {
+        const savedUser = localStorage.getItem("user")
+        if (savedUser && savedUser !== "undefined" && savedUser !== "null") {
+          try {
+            const userData = JSON.parse(savedUser)
+            if (userData && userData.id && userData.email) {
+              setUser(userData)
+            }
+          } catch (error) {
+            console.error("Erro ao fazer parse do usuário:", error)
+          }
+        }
+      }
+    }
+
     const fetchPosts = async () => {
       try {
         const response = await fetch(`${API_URL}/api/posts`)
@@ -27,6 +52,7 @@ export default function PostsPage() {
       }
     }
 
+    checkUser()
     fetchPosts()
   }, [])
 
@@ -35,20 +61,24 @@ export default function PostsPage() {
       {/* Header da página */}
       <header className="header">
         <div className="container header-content">
-          <Link href="/" className="logo">
+          <Link href={user ? "/dashboard" : "/"} className="logo">
             Blog App
           </Link>
-          <nav style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <Link href="/posts" className="button button-outline">
-              📖 Posts
-            </Link>
-            <Link href="/login" className="button button-outline">
-              Login
-            </Link>
-            <Link href="/register" className="button button-primary">
-              Registrar
-            </Link>
-          </nav>
+          {user ? (
+            <UserNav />
+          ) : (
+            <nav style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <Link href="/posts" className="button button-outline">
+                📖 Posts
+              </Link>
+              <Link href="/login" className="button button-outline">
+                Login
+              </Link>
+              <Link href="/register" className="button button-primary">
+                Registrar
+              </Link>
+            </nav>
+          )}
         </div>
       </header>
 
@@ -59,9 +89,28 @@ export default function PostsPage() {
             Posts do Blog
           </h1>
           <p style={{ fontSize: "1.125rem", color: "#6b7280", maxWidth: "600px", margin: "0 auto" }}>
-            Explore os posts mais recentes da nossa comunidade de escritores.
+            {user
+              ? `Explore os posts da comunidade, ${user.name}!`
+              : "Explore os posts mais recentes da nossa comunidade de escritores."}
           </p>
         </div>
+
+        {/* Navegação rápida para usuários logados */}
+        {user && (
+          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+            <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href="/dashboard" className="button button-outline">
+                📊 Voltar ao Dashboard
+              </Link>
+              <Link href="/dashboard/posts" className="button button-outline">
+                📝 Meus Posts
+              </Link>
+              <Link href="/dashboard/posts/new" className="button button-primary">
+                ➕ Criar Novo Post
+              </Link>
+            </div>
+          </div>
+        )}
 
         {isLoading ? (
           <div style={{ display: "grid", gap: "2rem", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))" }}>
@@ -121,11 +170,19 @@ export default function PostsPage() {
             <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.5 }}>📝</div>
             <h3 style={{ marginBottom: "1rem", color: "#374151" }}>Nenhum post publicado ainda</h3>
             <p style={{ marginBottom: "2rem", color: "#6b7280" }}>
-              Seja o primeiro a compartilhar suas ideias com a comunidade!
+              {user
+                ? "Que tal ser o primeiro a compartilhar suas ideias?"
+                : "Seja o primeiro a compartilhar suas ideias com a comunidade!"}
             </p>
-            <Link href="/login" className="button button-primary">
-              Faça login para criar um post
-            </Link>
+            {user ? (
+              <Link href="/dashboard/posts/new" className="button button-primary">
+                ➕ Criar seu primeiro post
+              </Link>
+            ) : (
+              <Link href="/login" className="button button-primary">
+                Faça login para criar um post
+              </Link>
+            )}
           </div>
         )}
       </main>
