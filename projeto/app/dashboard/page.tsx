@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/components/auth-guard"
+import { API_URL } from "@/lib/config"
 
 interface Post {
   id: number
@@ -33,27 +34,16 @@ export default function DashboardPage() {
         try {
           console.log("🔄 Buscando dados do dashboard...")
 
-          // Usar rotas relativas
-          const [postsRes, usersRes] = await Promise.all([fetch("/api/posts"), fetch("/api/users")])
-
-          console.log("📡 Respostas da API:", {
-            posts: postsRes.status,
-            users: usersRes.status,
-          })
+          const [postsRes, usersRes] = await Promise.all([fetch(`${API_URL}/api/posts`), fetch(`${API_URL}/api/users`)])
 
           if (postsRes.ok && usersRes.ok) {
             const postsData = await postsRes.json()
             const usersData = await usersRes.json()
 
-            console.log("✅ Dados carregados:", {
-              posts: postsData.length,
-              users: usersData.length,
-            })
+            console.log("✅ Dados carregados:", { posts: postsData.length, users: usersData.length })
 
             setPosts(postsData)
             setUsers(usersData)
-          } else {
-            console.error("❌ Erro nas respostas da API")
           }
         } catch (error) {
           console.error("❌ Erro ao buscar dados:", error)
