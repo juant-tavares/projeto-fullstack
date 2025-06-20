@@ -83,9 +83,6 @@ export default function PostPage({ params }: PageProps) {
               <UserNav />
             ) : (
               <nav style={{ display: "flex", gap: "1rem" }}>
-                <Link href="/posts" className="button button-outline">
-                  ← Voltar aos posts
-                </Link>
                 <Link href="/login" className="button button-outline">
                   Login
                 </Link>
@@ -181,9 +178,6 @@ export default function PostPage({ params }: PageProps) {
           </Link>
           {user && (
             <>
-              <Link href="/dashboard" className="button button-outline button-sm">
-                📊 Dashboard
-              </Link>
               {isAuthor && (
                 <Link href={`/dashboard/posts/edit/${post.id}`} className="button button-primary button-sm">
                   ✏️ Editar Post
@@ -242,9 +236,6 @@ export default function PostPage({ params }: PageProps) {
 
           <footer style={{ marginTop: "3rem", textAlign: "center" }}>
             <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/posts" className="button button-outline">
-                ← Ver mais posts
-              </Link>
               {user ? (
                 <Link href="/dashboard/posts/new" className="button button-primary">
                   ➕ Criar seu post
