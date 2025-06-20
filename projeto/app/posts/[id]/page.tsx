@@ -159,9 +159,6 @@ export default function PostPage({ params }: PageProps) {
             <UserNav />
           ) : (
             <nav style={{ display: "flex", gap: "1rem" }}>
-              <Link href="/posts" className="button button-outline">
-                ← Voltar aos posts
-              </Link>
               <Link href="/login" className="button button-outline">
                 Login
               </Link>
