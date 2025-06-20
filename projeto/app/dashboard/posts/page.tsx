@@ -2,25 +2,9 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/components/auth-guard"
 import { API_URL } from "@/lib/config"
 import type { Post } from "@/types"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Edit, Plus, Trash2 } from "lucide-react"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 export default function PostsPage() {
   const { user } = useAuth()
@@ -64,89 +48,81 @@ export default function PostsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Seus Posts</h2>
-          <p className="text-muted-foreground">Gerencie suas publicações</p>
+    <div>
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+          <div>
+            <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "0.5rem", color: "#1f2937" }}>
+              Seus Posts
+            </h1>
+            <p style={{ color: "#6b7280" }}>Gerencie suas publicações</p>
+          </div>
+          <Link href="/dashboard/posts/new" className="button button-primary">
+            ➕ Novo Post
+          </Link>
         </div>
-        <Link href="/dashboard/posts/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Post
-          </Button>
-        </Link>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Todos os Posts</CardTitle>
-          <CardDescription>Lista de todos os seus posts</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="card">
+        <div className="card-header">
+          <h2 className="card-title">Todos os Posts</h2>
+          <p className="card-description">Lista de todos os seus posts</p>
+        </div>
+        <div className="card-content">
           {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))}
+            <div style={{ textAlign: "center", padding: "2rem" }}>
+              <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
+              <p>Carregando posts...</p>
             </div>
           ) : userPosts.length > 0 ? (
-            <div className="space-y-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {userPosts.map((post) => (
-                <div key={post.id} className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium">{post.title}</h3>
-                      <Badge variant={post.published ? "default" : "outline"}>
-                        {post.published ? "Publicado" : "Rascunho"}
-                      </Badge>
+                <div key={post.id} className="post-item">
+                  <div className="post-info">
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                      <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "600" }}>{post.title}</h3>
+                      {post.published ? (
+                        <span className="badge badge-success">Publicado</span>
+                      ) : (
+                        <span className="badge badge-warning">Rascunho</span>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-1">{post.content || "Sem conteúdo"}</p>
+                    <p style={{ margin: 0, color: "#6b7280", fontSize: "0.875rem" }}>
+                      {post.content ? post.content.substring(0, 100) + "..." : "Sem conteúdo"}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={`/dashboard/posts/edit/${post.id}`}>
-                      <Button variant="outline" size="icon">
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Editar</span>
-                      </Button>
+                  <div className="action-buttons">
+                    <Link href={`/dashboard/posts/edit/${post.id}`} className="button button-outline button-sm">
+                      ✏️ Editar
                     </Link>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Excluir</span>
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta ação não pode ser desfeita. Isso excluirá permanentemente o post.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDeletePost(post.id)}>Excluir</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <button
+                      onClick={() => {
+                        if (confirm("Tem certeza que deseja excluir este post?")) {
+                          handleDeletePost(post.id)
+                        }
+                      }}
+                      className="button button-danger button-sm"
+                    >
+                      🗑️ Excluir
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-muted-foreground mb-4">Você ainda não criou nenhum post.</p>
-              <Link href="/dashboard/posts/new">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar seu primeiro post
-                </Button>
+            <div style={{ textAlign: "center", padding: "3rem" }}>
+              <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.5 }}>📝</div>
+              <h3 style={{ marginBottom: "1rem", color: "#374151" }}>Você ainda não criou nenhum post</h3>
+              <p style={{ marginBottom: "2rem", color: "#6b7280" }}>
+                Que tal começar agora e compartilhar suas ideias?
+              </p>
+              <Link href="/dashboard/posts/new" className="button button-primary">
+                ➕ Criar seu primeiro post
               </Link>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
