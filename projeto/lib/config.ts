@@ -1,13 +1,5 @@
-// Configuração corrigida para funcionar em build e runtime
+// Detectar se está na Vercel ou local
 export const API_URL =
-  typeof window !== "undefined"
-    ? "" // No cliente, usar rotas relativas
-    : process.env.NODE_ENV === "production"
-      ? process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "https://your-app.vercel.app" // Substitua pelo seu domínio
-      : "http://localhost:3000" // Desenvolvimento
-
-// Para debug
-export const IS_PRODUCTION = process.env.NODE_ENV === "production"
-export const IS_CLIENT = typeof window !== "undefined"
+  process.env.NODE_ENV === "production"
+    ? "" // Na Vercel, usar rotas relativas
+    : process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"

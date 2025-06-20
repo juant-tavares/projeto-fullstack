@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { API_URL } from "@/lib/config"
 import type { Post } from "@/types"
 import { formatDate } from "@/lib/utils"
 
@@ -12,24 +13,15 @@ export default function PostsPage() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        console.log("🔄 Buscando posts públicos...")
-
-        // Usar rota relativa no cliente
-        const response = await fetch("/api/posts")
-
-        console.log("📡 Resposta da API:", response.status)
-
+        const response = await fetch(`${API_URL}/api/posts`)
         if (response.ok) {
           const data = await response.json()
           // Filtrar apenas posts publicados
           const publishedPosts = data.filter((post: Post) => post.published)
-          console.log("✅ Posts públicos carregados:", publishedPosts.length)
           setPosts(publishedPosts)
-        } else {
-          console.error("❌ Erro ao buscar posts:", response.status)
         }
       } catch (error) {
-        console.error("❌ Erro ao buscar posts:", error)
+        console.error("Erro ao buscar posts:", error)
       } finally {
         setIsLoading(false)
       }

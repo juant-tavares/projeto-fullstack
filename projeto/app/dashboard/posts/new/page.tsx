@@ -1,135 +1,152 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/contexts/auth-context"
+import { API_URL } from "@/lib/config"
+import type { Post } from "@/types"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
+import { Edit, Plus, Trash2 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
-export default function NewPostPage() {
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [published, setPublished] = useState(false)
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+export default function PostsPage() {
   const { user } = useAuth()
+  const [posts, setPosts] = useState<Post[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-
-    if (!title.trim()) {
-      setError("O título é obrigatório")
-      return
-    }
-
-    if (!user) {
-      setError("Você precisa estar logado para criar um post")
-      return
-    }
-
-    setIsLoading(true)
-
+  const fetchPosts = async () => {
     try {
-      // Usar rota relativa
-      const response = await fetch("/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          content,
-          published,
-          authorId: user.id,
-        }),
-      })
-
-      if (!response.ok) {
+      const response = await fetch(`${API_URL}/api/posts`)
+      if (response.ok) {
         const data = await response.json()
-        throw new Error(data.error || "Falha ao criar post")
+        setPosts(data)
       }
-
-      router.push("/dashboard/posts")
-    } catch (err: any) {
-      setError(err.message || "Ocorreu um erro ao criar o post. Tente novamente.")
+    } catch (error) {
+      console.error("Erro ao buscar posts:", error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (!user) {
-    return <div>Você precisa estar logado para criar um post.</div>
+  useEffect(() => {
+    fetchPosts()
+  }, [])
+
+  // Filtrar posts do usuário atual
+  const userPosts = posts.filter((post) => post.authorId === user?.id)
+
+  const handleDeletePost = async (id: number) => {
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${id}`, {
+        method: "DELETE",
+      })
+
+      if (response.ok) {
+        // Atualizar a lista de posts após a exclusão
+        setPosts(posts.filter((post) => post.id !== id))
+      }
+    } catch (error) {
+      console.error("Erro ao excluir post:", error)
+    }
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Novo Post</h2>
-        <p className="text-muted-foreground">Crie um novo post para o blog</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Seus Posts</h2>
+          <p className="text-muted-foreground">Gerencie suas publicações</p>
+        </div>
+        <Link href="/dashboard/posts/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Post
+          </Button>
+        </Link>
       </div>
 
-      <div className="card">
-        <form onSubmit={handleSubmit}>
-          <div className="card-header">
-            <h3 className="card-title">Detalhes do Post</h3>
-            <p className="card-description">Preencha as informações do seu novo post</p>
-          </div>
-          <div className="card-content space-y-4">
-            {error && <div className="alert alert-error">{error}</div>}
-
-            <div className="form-group">
-              <label htmlFor="title" className="form-label">
-                Título
-              </label>
-              <input
-                id="title"
-                className="form-input"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Digite o título do post"
-                required
-              />
+      <Card>
+        <CardHeader>
+          <CardTitle>Todos os Posts</CardTitle>
+          <CardDescription>Lista de todos os seus posts</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-20 w-full" />
+              ))}
             </div>
-
-            <div className="form-group">
-              <label htmlFor="content" className="form-label">
-                Conteúdo
-              </label>
-              <textarea
-                id="content"
-                className="form-textarea"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Digite o conteúdo do post"
-                style={{ minHeight: "200px" }}
-              />
+          ) : userPosts.length > 0 ? (
+            <div className="space-y-4">
+              {userPosts.map((post) => (
+                <div key={post.id} className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{post.title}</h3>
+                      <Badge variant={post.published ? "default" : "outline"}>
+                        {post.published ? "Publicado" : "Rascunho"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground line-clamp-1">{post.content || "Sem conteúdo"}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/posts/edit/${post.id}`}>
+                      <Button variant="outline" size="icon">
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Excluir</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. Isso excluirá permanentemente o post.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeletePost(post.id)}>Excluir</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <div className="form-group">
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <input
-                  type="checkbox"
-                  id="published"
-                  checked={published}
-                  onChange={(e) => setPublished(e.target.checked)}
-                />
-                <label htmlFor="published" className="form-label" style={{ margin: 0 }}>
-                  Publicar imediatamente
-                </label>
-              </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-muted-foreground mb-4">Você ainda não criou nenhum post.</p>
+              <Link href="/dashboard/posts/new">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Criar seu primeiro post
+                </Button>
+              </Link>
             </div>
-          </div>
-          <div className="card-footer">
-            <button type="button" className="button button-outline" onClick={() => router.back()}>
-              Cancelar
-            </button>
-            <button type="submit" className="button button-primary" disabled={isLoading}>
-              {isLoading ? "Salvando..." : "Salvar Post"}
-            </button>
-          </div>
-        </form>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
